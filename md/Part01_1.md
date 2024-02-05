@@ -37,3 +37,60 @@
 - Version : Java EE 8
 - 프로젝트 생성 마지막에는 Java Enter-prise와 관련된 여러 기술 라이브러리들을 설정할 수 있지만 기본적으로 'Servlet'만 지정할 것
 - 생성 완료
+
+## 프로젝트 경로 설정
+- 프로젝트가 실행되면 브라우저의 주소창이 상당히 길고 복잡하므로 localhost:8080으로 간단하게 수정하기
+- 실행중인 톰캣을 중지하고 
+- Run -> Edit Configurations... -> Deployment 선택
+- 기존에 있던 .war을 선택하고 [-] 버튼 클릭
+- `war은 'Web Application Archive'의 약자로 현재 프로젝트를 압축 파일로 만들어서 톰캣에서 실행하는 방식`
+- [+] 를 눌러 'Artifact'를 '(exploded)'가 포함된 항목으로 지정
+- Application context를 '/'로 지정
+- 톰캣을 다시 실행시 localhost:8080으로 브라우저의 경로가 지정되는지 확인
+
+## 변경된 코드의 반영
+- 그레이들을 이용해서 컴파일 등의 작업이 처리되고 프로젝트의 build/libs 폴더 안에 
+내용은 톰캣을 통해서 실행하기 때문에 코드를 변경한 후에는 톰캣을 재시작해야만 함
+- 톰캣의 재시작을 최소화하기 위해서
+- Run -> Edit Config-urations... -> Server 탭
+- 톰캣을 위한 한글 설정을 위해 VM options: '-Dfile.encoding=UTF-8'
+- On 'Update' action 와 On frame deactivation을 `Update classes and resources`로 바꿔준다.
+- 그 후 index.jsp를 변경하고 저장하고 브라우저를 새로고침 하면 변경이 적용됨.
+- `index.jsp는 소스코드를 변경하는 것만으로 반영되지만 HelloServlet과 같은 자바 코드의 변경은 조금 다르게 처리된다.`
+- 왼쪽 아래에 있는 'services' 항목에서 [Deploy All]을 실행하면 현재 코드를 다시 빌드하고 build/libs 폴더의 내용물을
+수정하게 된다.
+- 그럼 로그들이 출력되면서 서버 내에 변경된 코드가 반영된다.
+
+## 서블릿 코드 작성
+```java
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet(name="myServlet",urlPatterns = "/my")
+public class MyServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html");
+
+        PrintWriter out = resp.getWriter();
+        out.println("<html><body>");
+        out.println("<h1>MyServlet</h1>");
+        out.println("</body></html>");
+    }
+}
+```
+- 톰캣에서 작성하는 자바 코드는 HttpServlet이라는 클래스를 상속해서 작성한다.
+- 이것을 흔히 서블릿 클래스를 생성한다고 표현
+- @WebServlet 어노테이션은 브라우저의 경로와 해덩 서블릿을 연결하는 설정을 위해 사용
+- doGet()은 브라우저의 주소를 직접 변경해서 접근하는 경우에 호출되는 메소드
+- PrintWriter라는 객체를 이용해 브라우저쪽으로 출력을 처리
+
+
+## JSP 코드 작성하기
+- /src/main/webapp/에 'test.jsp' 생성
+- "http://localhost:8080/test.jsp"를 통해 test.jsp접근 가능
